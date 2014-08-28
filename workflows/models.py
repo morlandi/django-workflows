@@ -191,6 +191,17 @@ class State(models.Model):
                         transitions.append(transition)
         return transitions
 
+
+TRANSITION_DIRECTION_NONE = 0
+TRANSITION_DIRECTION_FORWARD = 1
+TRANSITION_DIRECTION_BACKWARD = -1
+TRANSITION_DIRECTIONS = (
+    (TRANSITION_DIRECTION_NONE, _(u'None')),
+    (TRANSITION_DIRECTION_FORWARD, _(u'Forward')),
+    (TRANSITION_DIRECTION_BACKWARD, _(u'Backward')),
+)
+
+
 class Transition(models.Model):
     """A transition from a source to a destination state. The transition can
     be used from several source states.
@@ -217,14 +228,30 @@ class Transition(models.Model):
         Permission instance.
 
     """
-    name = models.CharField(_(u"Name"), max_length=100)
+    name = models.CharField(_(u"Name"), max_length=100, null=False, blank=True)
     workflow = models.ForeignKey(Workflow, verbose_name=_(u"Workflow"), related_name="transitions")
     destination = models.ForeignKey(State, verbose_name=_(u"Destination"), null=True, blank=True, related_name="destination_state")
+    direction = models.IntegerField(verbose_name=_(u'direction'), default=TRANSITION_DIRECTION_NONE, choices=TRANSITION_DIRECTIONS)
     condition = models.CharField(_(u"Condition"), blank=True, max_length=100)
     permission = models.ForeignKey(Permission, verbose_name=_(u"Permission"), blank=True, null=True)
 
+    class Meta:
+        ordering = ['destination', ]
+        # o forse:
+        # ordering = ['direction', 'destination', ]
+
+
     def __unicode__(self):
-        return self.name
+        text = self.name
+        if len(text) <= 0:
+            if self.direction == TRANSITION_DIRECTION_FORWARD:
+                text = u'>> Vai a ' + self.destination.__unicode__()
+            elif self.direction == TRANSITION_DIRECTION_BACKWARD:
+                text = u'<< Torna a ' + self.destination.__unicode__()
+            else:
+                text = u'> ' + self.destination.__unicode__()
+        return text
+
 
 class StateObjectRelation(models.Model):
     """Stores the workflow state of an object.
