@@ -169,7 +169,8 @@ class State(models.Model):
 
     def __unicode__(self):
         #return "%s (%s)" % (self.name, self.workflow.name)
-        return "%s (%s)" % (self.name if len(self.name) > 0 else self.codename, self.workflow.name)
+        #return "%s (%s)" % (self.name if len(self.name) > 0 else self.codename, self.workflow.name)
+        return self.name if len(self.name) > 0 else self.codename
 
     def get_allowed_transitions(self, obj, user):
         """Returns all allowed transitions for passed object and user.
