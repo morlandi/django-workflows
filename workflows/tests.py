@@ -536,8 +536,8 @@ class RelationsTestCase(TestCase):
 def create_workflow(self):
     self.w = Workflow.objects.create(name="Standard")
 
-    self.private = State.objects.create(name="Private", workflow= self.w)
-    self.public = State.objects.create(name="Public", workflow= self.w)
+    self.private = State.objects.create(name="Private", codename="private", workflow= self.w)
+    self.public = State.objects.create(name="Public", codename="public", workflow= self.w)
 
     self.make_public = Transition.objects.create(name="Make public", workflow=self.w, destination = self.public)
     self.make_private = Transition.objects.create(name="Make private", workflow=self.w, destination = self.private)
