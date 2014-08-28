@@ -10,6 +10,10 @@ import permissions.utils
 from permissions.models import Permission
 from permissions.models import Role
 
+# others
+from positions.fields import PositionField
+
+
 class Workflow(models.Model):
     """A workflow consists of a sequence of connected (through transitions)
     states. It can be assigned to a model and / or model instances. If a
@@ -135,6 +139,7 @@ class Workflow(models.Model):
                 wor.save()
                 workflows.utils.set_state(self.initial_state)
 
+
 class State(models.Model):
     """A certain state within workflow.
 
@@ -150,15 +155,20 @@ class State(models.Model):
         The transitions of a workflow state.
 
     """
-    name = models.CharField(_(u"Name"), max_length=100)
+    codename = models.CharField(_(u"Codename"), max_length=100, null=False)
+    name = models.CharField(_(u"Name"), max_length=100, null=False, blank=True)
     workflow = models.ForeignKey(Workflow, verbose_name=_(u"Workflow"), related_name="states")
+    description = models.TextField(null=False, blank=True, verbose_name=_(u'description'))
     transitions = models.ManyToManyField("Transition", verbose_name=_(u"Transitions"), blank=True, null=True, related_name="states")
+    state_position = PositionField(db_index=True, collection='workflow')
 
     class Meta:
-        ordering = ("name", )
+        ordering = ['state_position', ]
+        unique_together = (('codename', 'workflow'), ('name', 'workflow'))
 
     def __unicode__(self):
-        return "%s (%s)" % (self.name, self.workflow.name)
+        #return "%s (%s)" % (self.name, self.workflow.name)
+        return "%s (%s)" % (self.name if len(self.name) > 0 else self.codename, self.workflow.name)
 
     def get_allowed_transitions(self, obj, user):
         """Returns all allowed transitions for passed object and user.
