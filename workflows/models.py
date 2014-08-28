@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # django imports
 from django.contrib.contenttypes import generic
@@ -250,6 +251,36 @@ class StateObjectRelation(models.Model):
 
     class Meta:
         unique_together = ("content_type", "content_id", "state")
+
+
+class TransitionObjectRelation(models.Model):
+    """Stores the workflow state history of an object.
+
+    **Attributes:**
+
+    content
+        The object for which the state is stored. This can be any instance of
+        a Django model.
+
+    state
+        The state of content. This must be a State instance.
+
+    user
+        The user who requested the object transition
+    """
+    content_type = models.ForeignKey(ContentType, verbose_name=_(u"Content type"), related_name="transition_object", blank=True, null=True)
+    content_id = models.PositiveIntegerField(_(u"Content id"), blank=True, null=True)
+    content = generic.GenericForeignKey(ct_field="content_type", fk_field="content_id")
+    state = models.ForeignKey(State, verbose_name=_(u"State"))
+    datetime = models.DateTimeField(verbose_name=_(u'datetime'), auto_now_add=True)
+    user = models.ForeignKey(User, db_index=True, verbose_name=_(u'user'))
+
+    class Meta:
+        ordering = ("-datetime", "-id")
+
+    def __unicode__(self):
+        return "%s %s - %s (%s: %s)" % (self.content_type.name, self.content_id, self.state.name, self.user.username, self.datetime.strftime('%Y-%m-%d %H:%M:%S'))
+
 
 class WorkflowObjectRelation(models.Model):
     """Stores an workflow of an object.

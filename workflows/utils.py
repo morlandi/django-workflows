@@ -12,6 +12,7 @@ from workflows.models import Workflow
 from workflows.models import WorkflowModelRelation
 from workflows.models import WorkflowObjectRelation
 from workflows.models import WorkflowPermissionRelation
+from workflows.models import TransitionObjectRelation
 
 # permissions imports
 import permissions.utils
@@ -244,7 +245,7 @@ def get_state(obj):
     else:
         return sor.state
 
-def set_state(obj, state):
+def set_state(obj, state, user=None):
     """Sets the state for the passed object to the passed state and updates
     the permissions for the object.
 
@@ -256,6 +257,9 @@ def set_state(obj, state):
 
     state
         The state which should be set to the passed object.
+
+    user (optional)
+        Specify the user who requests the new state in order to save a new event in the object transitions history
     """
     ctype = ContentType.objects.get_for_model(obj)
     try:
@@ -266,13 +270,16 @@ def set_state(obj, state):
         sor.state = state
         sor.save()
     update_permissions(obj)
+    if user is not None:
+        tor = TransitionObjectRelation.objects.create(content=obj, state=state, user=user)
+        tor.save()
 
-def set_initial_state(obj):
+def set_initial_state(obj, user=None):
     """Sets the initial state to the passed object.
     """
     wf = get_workflow(obj)
     if wf is not None:
-        set_state(obj, wf.get_initial_state())
+        set_state(obj, wf.get_initial_state(), user)
 
 def get_allowed_transitions(obj, user):
     """Returns all allowed transitions for passed object and user. Takes the
@@ -304,7 +311,7 @@ def do_transition(obj, transition, user):
 
     transitions = get_allowed_transitions(obj, user)
     if transition in transitions:
-        set_state(obj, transition.destination)
+        set_state(obj, transition.destination, user)
         return True
     else:
         return False
@@ -333,3 +340,21 @@ def update_permissions(obj):
     # Add inheritance blocks of this state to the object
     for sib in StateInheritanceBlock.objects.filter(state=state):
         permissions.utils.add_inheritance_block(obj, sib.permission)
+
+
+def get_state_history(obj):
+    """Returns the states history for the passed object.
+
+    **Parameters:**
+
+    obj
+        The object for which the workflow states history should be returned. Can be any
+        Django model instance.
+    """
+    ctype = ContentType.objects.get_for_model(obj)
+    try:
+        tor = TransitionObjectRelation.objects.filter(content_type=ctype, content_id=obj.id).select_related('state', 'user')
+    except TransitionObjectRelation.DoesNotExist:
+        return None
+    else:
+        return [{'datetime': row.datetime, 'state': row.state, 'user': row.user} for row in tor]
