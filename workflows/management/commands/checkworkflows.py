@@ -131,7 +131,8 @@ class Command(BaseWorkflowCommand):
         errors = 0
 
         if len(deserialized_objects) <= 0:
-            raise CommandError('Empty deserialized objects list')
+            self.trace_error('Empty deserialized objects list (warning)')
+            return
 
         cls = deserialized_objects[0].object.__class__
         cls_name = cls._meta.object_name
