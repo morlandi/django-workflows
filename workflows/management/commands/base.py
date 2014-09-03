@@ -30,7 +30,7 @@ class BaseWorkflowCommand(BaseCommand):
                 self.stdout.write("Checking '%s' fixture..." % fixture_name)
         else:
             raise CommandError(
-                "Problem installing fixture '%s': %s is not a known serialization format." %
+                "Problem deserializing fixture '%s': %s is not a known serialization format." %
                     (fixture_name, format))
 
         fixture_dir = fixture_name
@@ -52,7 +52,7 @@ class BaseWorkflowCommand(BaseCommand):
 
             except Exception as e:
                 if not isinstance(e, CommandError):
-                    e.args = ("Problem installing fixture '%s': %s" % (full_path, e),)
+                    e.args = ("Problem deserializing fixture '%s': %s" % (full_path, e),)
                 raise
             finally:
                 fixture.close()
