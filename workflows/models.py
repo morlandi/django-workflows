@@ -169,8 +169,8 @@ class State(models.Model):
 
     def __unicode__(self):
         #return "%s (%s)" % (self.name, self.workflow.name)
-        #return "%s (%s)" % (self.name if len(self.name) > 0 else self.codename, self.workflow.name)
-        return self.name if len(self.name) > 0 else self.codename
+        return "%s (%s)" % (self.name if len(self.name) > 0 else self.codename, self.workflow.name)
+        #return self.name if len(self.name) > 0 else self.codename
 
     def get_allowed_transitions(self, obj, user):
         """Returns all allowed transitions for passed object and user.
@@ -179,7 +179,7 @@ class State(models.Model):
         for transition in self.transitions.all():
             permission = transition.permission
             if permission is None:
-               transitions.append(transition)
+                transitions.append(transition)
             else:
                 # First we try to get the objects specific has_permission
                 # method (in case the object inherits from the PermissionBase
@@ -240,15 +240,16 @@ class Transition(models.Model):
         ordering = ['destination', ]
         # o forse:
         # ordering = ['direction', 'destination', ]
+        unique_together = (("destination", "direction"),)
 
 
     def __unicode__(self):
         text = self.name
         if len(text) <= 0:
             if self.direction == TRANSITION_DIRECTION_FORWARD:
-                text = u'>> Vai a ' + self.destination.__unicode__()
+                text = u'>> Vai a ' + self.destination.name
             elif self.direction == TRANSITION_DIRECTION_BACKWARD:
-                text = u'<< Torna a ' + self.destination.__unicode__()
+                text = u'<< Torna a ' + self.destination.name
             else:
                 text = u'> ' + self.destination.__unicode__()
         return text
