@@ -358,3 +358,16 @@ def get_state_history(obj):
         return None
     else:
         return [{'datetime': row.datetime, 'state': row.state, 'user': row.user} for row in tor]
+
+
+def get_last_state_transition(obj):
+    """Returns all details about last state transition for the passed object.
+
+    **Parameters:**
+
+    obj
+        The object for which the workflow state transition should be returned.
+        Can be any Django model instance.
+    """
+    history = get_state_history(obj)
+    return history[0] if history else None

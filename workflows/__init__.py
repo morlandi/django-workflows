@@ -67,3 +67,8 @@ class WorkflowBase(object):
         """Returns the state history of the object.
         """
         return workflows.utils.get_state_history(self)
+
+    def get_last_state_transition(self):
+        """Returns the state history of the object.
+        """
+        return workflows.utils.get_last_state_transition(self)
