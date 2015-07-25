@@ -17,6 +17,7 @@ from workflows.models import TransitionObjectRelation
 # permissions imports
 import permissions.utils
 
+
 def get_objects_for_workflow(workflow):
     """Returns all objects which have passed workflow.
 
@@ -33,6 +34,7 @@ def get_objects_for_workflow(workflow):
             return []
 
     return workflow.get_objects()
+
 
 def remove_workflow(ctype_or_obj):
     """Removes the workflow from the passed content type or object. After this
@@ -55,6 +57,7 @@ def remove_workflow(ctype_or_obj):
         remove_workflow_from_model(ctype_or_obj)
     else:
         remove_workflow_from_object(ctype_or_obj)
+
 
 def remove_workflow_from_model(ctype):
     """Removes the workflow from passed content type. After this function has
@@ -91,6 +94,7 @@ def remove_workflow_from_model(ctype):
     else:
         wmr.delete()
 
+
 def remove_workflow_from_object(obj):
     """Removes the workflow from the passed object. After this function has
     been called the object has no *own* workflow anymore (it might have one
@@ -113,6 +117,7 @@ def remove_workflow_from_object(obj):
     # Set initial of object's content types workflow (if there is one)
     set_initial_state(obj)
 
+
 def set_workflow(ctype_or_obj, workflow):
     """Sets the workflow for passed content type or object. See the specific
     methods for more information.
@@ -128,6 +133,7 @@ def set_workflow(ctype_or_obj, workflow):
         instance.
     """
     return workflow.set_to(ctype_or_obj)
+
 
 def set_workflow_for_object(obj, workflow):
     """Sets the passed workflow to the passed object.
@@ -153,6 +159,7 @@ def set_workflow_for_object(obj, workflow):
 
     workflow.set_to_object(obj)
 
+
 def set_workflow_for_model(ctype, workflow):
     """Sets the passed workflow to the passed content type. If the content
     type has already an assigned workflow the workflow is overwritten.
@@ -177,6 +184,7 @@ def set_workflow_for_model(ctype, workflow):
 
     workflow.set_to_model(ctype)
 
+
 def get_workflow(obj):
     """Returns the workflow for the passed object. It takes it either from
     the passed object or - if the object doesn't have a workflow - from the
@@ -195,6 +203,7 @@ def get_workflow(obj):
     ctype = ContentType.objects.get_for_model(obj)
     return get_workflow_for_model(ctype)
 
+
 def get_workflow_for_object(obj):
     """Returns the workflow for the passed object.
 
@@ -212,6 +221,7 @@ def get_workflow_for_object(obj):
     else:
         return wor.workflow
 
+
 def get_workflow_for_model(ctype):
     """Returns the workflow for the passed model.
 
@@ -227,6 +237,7 @@ def get_workflow_for_model(ctype):
         return None
     else:
         return wor.workflow
+
 
 def get_state(obj):
     """Returns the current workflow state for the passed object.
@@ -244,6 +255,7 @@ def get_state(obj):
         return None
     else:
         return sor.state
+
 
 def set_state(obj, state, user=None):
     """Sets the state for the passed object to the passed state and updates
@@ -274,6 +286,7 @@ def set_state(obj, state, user=None):
         tor = TransitionObjectRelation.objects.create(content=obj, state=state, user=user)
         tor.save()
 
+
 def set_initial_state(obj, user=None):
     """Sets the initial state to the passed object.
     """
@@ -299,6 +312,7 @@ def get_allowed_transitions(obj, user):
 
     return state.get_allowed_transitions(obj, user)
 
+
 def do_transition(obj, transition, user):
     """Processes the passed transition to the passed object (if allowed).
     """
@@ -316,6 +330,7 @@ def do_transition(obj, transition, user):
     else:
         return False
 
+
 def update_permissions(obj):
     """Updates the permissions of the passed object according to the object's
     current workflow state.
@@ -327,7 +342,7 @@ def update_permissions(obj):
     ct = ContentType.objects.get_for_model(obj)
     ps = [wpr.permission for wpr in WorkflowPermissionRelation.objects.filter(workflow=workflow)]
 
-    ObjectPermission.objects.filter(content_type = ct, content_id=obj.id, permission__in=ps).delete()
+    ObjectPermission.objects.filter(content_type=ct, content_id=obj.id, permission__in=ps).delete()
 
     # Grant permission for the state
     for spr in StatePermissionRelation.objects.filter(state=state):
@@ -335,7 +350,7 @@ def update_permissions(obj):
 
     # Remove all inheritance blocks from the object
     ObjectPermissionInheritanceBlock.objects.filter(
-        content_type = ct, content_id=obj.id, permission__in=ps).delete()
+        content_type=ct, content_id=obj.id, permission__in=ps).delete()
 
     # Add inheritance blocks of this state to the object
     for sib in StateInheritanceBlock.objects.filter(state=state):
